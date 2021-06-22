@@ -257,3 +257,10 @@ instruction("What is this test all about?\n\n\nThis test measures associations b
 
 #Final End Screen
 
+
+# GL:
+# data should be saved trial by trial
+# function repetitions unnecessarily: instead of repeating, add parameters 
+# remove path so that data points to current directory
+# (tab length should be consistent)
+# (IAT design properly implemented)
