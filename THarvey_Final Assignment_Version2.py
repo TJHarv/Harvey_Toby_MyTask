@@ -13,11 +13,14 @@ import random as rd
 event.globalKeys.add(key="q", modifiers=["ctrl"], func=core.quit)
 
 #Creating two files for the respective participant - one with raw data, the other with processed data 
-raw_data_out=open("/Users/Toby/Desktop/UNI WIEN/200109 - Programming with Python/Final Assignment/Raw_Experimental_Data.txt","a", encoding="utf-8")
+raw_data_out=open("Raw_Experimental_Data.txt","a", encoding="utf-8")
+print("raw data file was created")
 raw_data_out.write("\t".join(["subject_id", "condition","age", "gender", "occupation","country of residence","congruent task"])\
     + "\t" + "\t".join([str(i) for i in range(1,33)]) + "\t" + "incongruent task" +  "\t" +"\t".join([str(i) for i in range(1,33)]) + "\n")
-data_out=open("/Users/Toby/Desktop/UNI WIEN/200109 - Programming with Python/Final Assignment/Experimental_Data.txt","a", encoding="utf-8")
+data_out=open("Experimental_Data.txt","a", encoding="utf-8")
+print("processed data file was created")
 data_out.write( '\t'.join(["subject_id", "condition","age", "gender", "occupation","country of residence","congruent average rt","incongruent average rt", "difference score rt"]) + "\t" + "\n" ) 
+
 
 ##Assigning object instances
 #Window
@@ -63,8 +66,8 @@ def sorting_instruction(task,left_category, right_category,left_category_2="foo"
     elif task==concept_by_evaluation:
         instruction("Put a left finger on the 'F' key for items that belong to the category " + left_category + " or " + left_category_2 + ".\nPut a right finger on the 'J' key for items that belong to the category " + right_category + " or " + right_category_2 +".\
         \n\n\nItems will appear one at a time.\n\nIf you make a mistake a red cross will flash.\n\n Go as fast as you can while being accurate.")
-#Defining the GUI window
-def open_gui():
+#Creating the GUI window
+def create_gui():
     myDlg = gui.Dlg(title="Implicit Bias Test")
     myDlg.addText('Subject Info')
     myDlg.addField('Subject ID (filled out by reseacher):')
@@ -73,20 +76,26 @@ def open_gui():
     myDlg.addField('Gender:')
     myDlg.addField('Occupation:')
     myDlg.addField('Country of Residence:')
-    ok_data = myDlg.show()  
-    global cancel
-    if myDlg.OK:  #Add function to make fields mandatory
-        if ok_data != None:
-            cancel=False
-            global condition
-        condition=ok_data[1]
-        raw_data_out.write( '\t'.join(ok_data) + "\t")
-        data_out.write( '\t'.join(ok_data) + "\t") 
-        #raw_data_out.write( '\t'.join(ok_data)) 
-        print(ok_data)
-    else:
-        cancel=True
-        print('user cancelled')
+    print("GUI was created")
+    open_gui(myDlg)
+#Opening the GUI window, including compulsory fields 
+def open_gui(myDlg):
+     global cancel
+     ok_data = myDlg.show()
+     if myDlg.OK:
+         if ok_data[1] == '' or ok_data[2] == '': # check if fulfilled
+              open_gui(myDlg)    # start (show) Dlg again if not
+         if ok_data != None:
+             cancel=False
+             global condition
+         condition=ok_data[1]
+         raw_data_out.write( '\t'.join(ok_data) + "\t")
+         data_out.write( '\t'.join(ok_data) + "\t")
+         print("user filled out gui with following data: ", ok_data)
+         print("gui data was saved to both data files")
+     else:
+         cancel=True
+         print('user cancelled')
 #Templates for Experimental Screen
 def exp_screen(task, switched):
     upper_left=TextStim(my_win, text="", height=0.07, color="green", pos=(-0.8, 0.85))
@@ -138,7 +147,6 @@ def show_stimuli(task,word,correct_key,wrong_key,switched):
         text_to_show.text=word
         text_to_show.draw()
         exp_screen(task, switched)
-        my_win.callOnFlip(timer.reset)
         my_win.flip()
         correct=getKeys(keyList=correct_key)
         wrong=getKeys(keyList=wrong_key)
@@ -159,13 +167,13 @@ def show_stimuli(task,word,correct_key,wrong_key,switched):
 def sorting(task,switched,list1,list2,list3="foo",list4="bar"):
     rd.shuffle(task)
     if task==concept or task==evaluation:
-        for word in task:
+        for word in task[0:5]:
             if word in list1:
                 show_stimuli(task,word,"f","j",switched)
             elif word in list2:
                 show_stimuli(task,word,"j","f",switched)
     elif task==concept_by_evaluation:
-        for word in task:
+        for word in task[0:5]:
             if word in list1 or word in list2:
                 show_stimuli(task,word,"f","j",switched)
             elif word in list3 or word in list4:
@@ -187,6 +195,7 @@ def exp_function(task,switched=False):
            list2=concept1 
            sorting_instruction(task,left_category, right_category,left_category_2="foo",right_category_2="bar")
            sorting(task,switched,list1,list2)
+        print("concept sorting was presented to PP")
     elif task==evaluation:
         left_category="Male"
         right_category="Female"
@@ -194,6 +203,7 @@ def exp_function(task,switched=False):
         list2=evaluation2
         sorting_instruction(task,left_category, right_category,left_category_2="foo",right_category_2="bar")
         sorting(task,switched,list1,list2)
+        print("evaluation sorting was presented to PP")
     elif task==concept_by_evaluation:
         if switched==False:
             left_category="Male"
@@ -217,11 +227,13 @@ def exp_function(task,switched=False):
             list4=concept1
             sorting_instruction(task,left_category, right_category,left_category_2,right_category_2)
             sorting(task,switched,list1,list2,list3,list4)
+        print("concept by evaluation sorting was presented to PP")
 #Data Write and Save Function 
 def write_and_save():
     raw_data_out.write("\t" + "\t".join([str(i) for i in resp_time_list_congruent]) + "\t")
     raw_data_out.write("\t" + "\t".join([str(i) for i in resp_time_list_incongruent]) + "\t\n")
     raw_data_out.close()
+    print("raw data was written to file and saved")
     congruent_average=sum(resp_time_list_congruent) / len(resp_time_list_congruent)
     data_out.write(str(congruent_average) + "\t") 
     incongruent_average=sum(resp_time_list_incongruent) / len(resp_time_list_incongruent)
@@ -229,9 +241,10 @@ def write_and_save():
     difference_score=incongruent_average-congruent_average
     data_out.write(str(difference_score) + "\t" + "\n")
     data_out.close()
+    print("processed data was written to file and saved")
 #Main Experimental Function, includes every other function and is used to conduct experiment
 def main_function():
-    open_gui()
+    create_gui()
     if cancel==True:
         raw_data_out.write("user cancelled\n")
         data_out.write("user cancelled\n")
@@ -259,8 +272,9 @@ def main_function():
             exp_function(concept_by_evaluation)
         write_and_save()
         instruction("This is the end of the experiment.\n\n\nThank you for your participation!") 
-        instruction("What is this test all about?\n\nThis test measures associations between concepts (here, Liberal Arts and Science) and evaluations (here, Female and Male).\n\nPeople are quicker to respond when items that are closely related in their mind share the same button")
+        instruction("What is this test all about?\n\nThis test measures associations between concepts (here, Liberal Arts and Science) and evaluations (here, Female and Male).\n\nPeople are quicker to respond when items that are closely related in their mind share the same button.")
     instruction("You can now close this window", Continue=False)
+    print("experiment was finished")
 
 
 ##Executing the functions/experiment
